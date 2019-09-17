@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "jcontrol",
+  "version": "1.0.0",
+  "name": "JasperControl",
+  "description": "Mod to control mob spawns",
+  "authors": [
+    "Valoeghese"
+  ],
+  "license": "CC BY-NC-SA",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "tk.valoeghese.jcontrol.JControl"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.4.0",
+    "fabric": "*"
+  },
+  "mixins": [
+    "mixins.jcontrol.json"
+  ]
+}

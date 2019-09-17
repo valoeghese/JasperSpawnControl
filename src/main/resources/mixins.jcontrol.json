@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "tk.valoeghese.jcontrol.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinSpawnHelper",
+    "MixinMobEntity"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
