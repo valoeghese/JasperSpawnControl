@@ -1,8 +1,10 @@
 package tk.valoeghese.jcontrol.mixin;
 
 import java.util.Random;
+import java.util.function.Predicate;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -38,6 +40,7 @@ import tk.valoeghese.jcontrol.config.JControlConfig;
 @Mixin(SpawnHelper.class)
 public class MixinSpawnHelper {
 
+	@Unique
 	private static BlockPos getSpawnHeight(World world, WorldChunk worldChunk) {
 		ChunkPos chunkPos_1 = worldChunk.getPos();
 		int spawnX = chunkPos_1.getStartX() + world.random.nextInt(16);
@@ -47,13 +50,27 @@ public class MixinSpawnHelper {
 		return new BlockPos(spawnX, spawnY, spawnZ);
 	}
 
+	@Unique
+	private static Predicate<Entity> createEntityPositionPredicate(int baseX, int baseY, int baseZ, int range) {
+		Box box = new Box(baseX - range, baseY - range, baseZ - range, baseX + range, baseY + range, baseZ + range);
+		Predicate<Entity> predicate = entity -> {
+			return box.intersects(entity.getBoundingBox());
+		};
+		return predicate;
+	}
+	
+	@Unique
+	private static int getEntitiesNearby(ServerWorld world, EntityType<?> type, int baseX, int baseY, int baseZ) {
+		return world.getEntities(type, createEntityPositionPredicate(baseX, baseY, baseZ, 5)).size();
+	}
+
 	@Inject(at = @At("HEAD"), method = "spawnEntitiesInChunk", cancellable = true)
 	private static void mixinSpawnEntitiesInChunk(EntityCategory IDontCareAboutThis, ServerWorld world, WorldChunk worldChunk, BlockPos rootPos, CallbackInfo info) {
-		//world.getEntities(except, new Box(baseX - 5, baseY - 5, base))
 		BlockPos spawnHeightPos = getSpawnHeight(world, worldChunk);
 		int baseX = spawnHeightPos.getX();
 		int baseY = spawnHeightPos.getY();
 		int baseZ = spawnHeightPos.getZ();
+
 		if (baseY >= 1) {
 			BlockState blockState_1 = worldChunk.getBlockState(spawnHeightPos);
 			if (!blockState_1.isSimpleFullBlock(worldChunk, spawnHeightPos)) {
@@ -64,18 +81,20 @@ public class MixinSpawnHelper {
 					EntityType<?> type = Registry.ENTITY_TYPE.get(new Identifier(config.entity));
 
 					BlockPos.Mutable mutablePos = new BlockPos.Mutable(baseX, baseY, baseZ);
-					
+
 					int entityCount = 0;
-					
+
 					for (ConfigSpawnEntry entry : config.spawns) {
 						boolean breakSpawnEntries = false;
-						
+
 						if ((world.random.nextFloat() < entry.chance) && Condition.get(new Identifier(entry.condition)).test(world, baseX, baseY, baseZ, entry.config)) {
 							EntityData entityData = null;
-							
+
 							int spawnCount = world.random.nextInt(1 + entry.maxCount - entry.minCount) + entry.minCount;
 							entityCount += spawnCount;
 							
+							if (getEntitiesNearby(world, type, x, baseY, z) > 2) break;
+
 							for (int i = 0; i < spawnCount; ++i) {
 								x += world.random.nextInt(6) - world.random.nextInt(6);
 								z += world.random.nextInt(6) - world.random.nextInt(6);
@@ -109,7 +128,7 @@ public class MixinSpawnHelper {
 									}
 
 									entity = (MobEntity)createdEntity;
-									
+
 								} catch (Exception var31) {
 									System.err.println("Failed to create mob " + var31);
 									return;
@@ -126,7 +145,7 @@ public class MixinSpawnHelper {
 								entityData = entity.initialize(world, world.getLocalDifficulty(new BlockPos(entity)), SpawnType.NATURAL, entityData, (CompoundTag)null);
 
 								world.spawnEntity(entity);
-								
+
 								if (i == spawnCount - 1) {
 									if (entityCount >= entity.getLimitPerChunk()) {
 										breakSpawnEntries = true;
@@ -134,7 +153,7 @@ public class MixinSpawnHelper {
 									}
 								}
 							}
-							
+
 							if (breakSpawnEntries) {
 								break;
 							}
@@ -147,9 +166,8 @@ public class MixinSpawnHelper {
 	}
 
 	private static boolean canSpawnEntity(MobEntity entity, World world, SpawnType natural, ConfigSpawnEntry entry) {
-		boolean forceTrue = !entry.defaultConditions;
-
-		return forceTrue || entity.canSpawn(world, SpawnType.NATURAL);
+		final boolean removeDefaultConditions = !entry.defaultConditions;
+		return removeDefaultConditions || entity.canSpawn(world, SpawnType.NATURAL);
 	}
 
 	@Inject(at = @At("HEAD"), method = "populateEntities", cancellable = true)
