@@ -17,8 +17,10 @@ import net.minecraft.entity.SpawnType;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
@@ -46,7 +48,8 @@ public class MixinSpawnHelper {
 	}
 
 	@Inject(at = @At("HEAD"), method = "spawnEntitiesInChunk", cancellable = true)
-	private static void mixinSpawnEntitiesInChunk(EntityCategory IDontCareAboutThis, World world, WorldChunk worldChunk, BlockPos rootPos, CallbackInfo info) {
+	private static void mixinSpawnEntitiesInChunk(EntityCategory IDontCareAboutThis, ServerWorld world, WorldChunk worldChunk, BlockPos rootPos, CallbackInfo info) {
+		//world.getEntities(except, new Box(baseX - 5, baseY - 5, base))
 		BlockPos spawnHeightPos = getSpawnHeight(world, worldChunk);
 		int baseX = spawnHeightPos.getX();
 		int baseY = spawnHeightPos.getY();
@@ -92,7 +95,7 @@ public class MixinSpawnHelper {
 								}
 
 								SpawnRestriction.Location spawnRestrictionLocation = SpawnRestriction.getLocation(type);
-								boolean defaultComputedConditions = entry.defaultConditions && !SpawnRestriction.method_20638(type, world, SpawnType.NATURAL, mutablePos, world.random);
+								boolean defaultComputedConditions = entry.defaultConditions && !SpawnRestriction.canSpawn(type, world, SpawnType.NATURAL, mutablePos, world.random);
 
 								if (!SpawnHelper.canSpawn(spawnRestrictionLocation, world, mutablePos, type) || defaultComputedConditions || !world.doesNotCollide(type.createSimpleBoundingBox((double)xFloat, (double)baseY, (double)zFloat))) {
 									break;
