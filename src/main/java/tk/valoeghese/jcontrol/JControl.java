@@ -16,16 +16,16 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.biome.Biome;
-import tk.valoeghese.jcontrol.config.Condition;
+import tk.valoeghese.jcontrol.config.ConditionRegistry;
 import tk.valoeghese.jcontrol.config.JControlConfig;
-import tk.valoeghese.jcontrol.config.Condition.ConditionConfigPair;
+import tk.valoeghese.jcontrol.config.ConditionRegistry.ConditionConfigPair;
 
 public class JControl implements ModInitializer {
 
 	public static File dir = new File("./jcontrol");
 	public static List<JControlConfig> configs = Lists.<JControlConfig>newArrayList();
 	public static JControlOptions options = new JControlOptions();
-	
+
 	@Override
 	public void onInitialize() {
 		if (!dir.exists()) {
@@ -46,65 +46,74 @@ public class JControl implements ModInitializer {
 				e.printStackTrace();
 			}
 		}
-		
+
 		registerConditions();
 	}
-	
+
 	private void registerConditions() {
 		// locational conditions
-		Condition.register("jcontrol:on_block", (world, x, y, z, config) -> {
+		ConditionRegistry.register("jcontrol:on_block", (world, x, y, z, config) -> {
 			BlockPos pos = new BlockPos(x, y == 0 ? y : y - 1, z);
 			Block blockOn = Registry.BLOCK.get(new Identifier(config.id));
 			return world.getBlockState(pos).getBlock().equals(blockOn);
 		});
-		Condition.register("jcontrol:in_biome", (world, x, y, z, config) -> {
+		ConditionRegistry.register("jcontrol:in_biome", (world, x, y, z, config) -> {
 			BlockPos pos = new BlockPos(x, y, z);
 			Biome biome = Registry.BIOME.get(new Identifier(config.id));
 			return world.getBiome(pos).equals(biome);
 		});
-		
-		Condition.register("jcontrol:below_y", (world, x, y, z, config) -> {
+
+		ConditionRegistry.register("jcontrol:below_y", (world, x, y, z, config) -> {
 			return y < config.value;
 		});
-		Condition.register("jcontrol:above_y", (world, x, y, z, config) -> {
+		ConditionRegistry.register("jcontrol:above_y", (world, x, y, z, config) -> {
 			return y > config.value;
 		});
-		
+
 		// special chunk
-		Condition.register("jcontrol:special_chunk_16", (world, x, y, z, config) -> {
+		ConditionRegistry.register("jcontrol:special_chunk_16", (world, x, y, z, config) -> {
 			int random = (-56235 * (x >> 4) + 94231 * (z >> 4)) & 0xF;
 			return (random == (int) config.value);
 		});
-		Condition.register("jcontrol:special_chunk_8", (world, x, y, z, config) -> {
+		ConditionRegistry.register("jcontrol:special_chunk_8", (world, x, y, z, config) -> {
 			int random = (-56235 * (x >> 4) + 94231 * (z >> 4)) & 0x7;
 			return (random == (int) config.value);
 		});
-		
+
 		// range
-		Condition.register("jcontrol:near_position", (world, x, y, z, config) -> {
+		ConditionRegistry.register("jcontrol:near_position", (world, x, y, z, config) -> {
 			Vec3d pos = new Vec3d(x, y, z);
 			Vec3d point = new Vec3d(config.position[0], config.position[1], config.position[2]);
-			
+
 			return (point.distanceTo(pos) < config.value);
 		});
-		
+
 		// multi
-		Condition.register("jcontrol:multi_and", (world, x, y, z, config) -> {
+		ConditionRegistry.register("jcontrol:multi_and", (world, x, y, z, config) -> {
 			for (ConditionConfigPair condition : config.conditions) {
-				if (!Condition.get(new Identifier(condition.condition)).test(world, x, y, z, condition.config)) {
+				if (!ConditionRegistry.get(new Identifier(condition.condition)).test(world, x, y, z, condition.config)) {
 					return false;
 				}
 			}
 			return true;
 		});
-		
-		Condition.register("jcontrol:multi_or", (world, x, y, z, config) -> {
+
+		ConditionRegistry.register("jcontrol:multi_or", (world, x, y, z, config) -> {
 			for (ConditionConfigPair condition : config.conditions) {
-				if (Condition.get(new Identifier(condition.condition)).test(world, x, y, z, condition.config)) {
+				if (ConditionRegistry.get(new Identifier(condition.condition)).test(world, x, y, z, condition.config)) {
 					return true;
 				}
 			}
 			return false;
+		});
+
+		// light level
+		ConditionRegistry.register("jcontrol:light_level_greater_than", (world, x, y, z, config) -> {
+			return world.getLightLevel(new BlockPos(x, y, z)) > config.value;
+		});
+
+		ConditionRegistry.register("jcontrol:light_level_less_than", (world, x, y, z, config) -> {
+			return world.getLightLevel(new BlockPos(x, y, z)) < config.value;
 		});
 	}
 

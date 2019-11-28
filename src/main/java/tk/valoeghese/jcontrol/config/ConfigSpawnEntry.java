@@ -1,7 +1,7 @@
 package tk.valoeghese.jcontrol.config;
 
 import tk.valoeghese.jcontrol.annotation.Required;
-import tk.valoeghese.jcontrol.config.Condition.ConditionConfig;
+import tk.valoeghese.jcontrol.config.ConditionRegistry.ConditionConfig;
 
 public class ConfigSpawnEntry {
 	@Required

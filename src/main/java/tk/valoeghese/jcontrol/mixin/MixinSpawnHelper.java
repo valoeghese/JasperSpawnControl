@@ -33,7 +33,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.WorldChunk;
 import tk.valoeghese.jcontrol.JControl;
-import tk.valoeghese.jcontrol.config.Condition;
+import tk.valoeghese.jcontrol.config.ConditionRegistry;
 import tk.valoeghese.jcontrol.config.ConfigSpawnEntry;
 import tk.valoeghese.jcontrol.config.JControlConfig;
 
@@ -87,7 +87,7 @@ public class MixinSpawnHelper {
 					for (ConfigSpawnEntry entry : config.spawns) {
 						boolean breakSpawnEntries = false;
 
-						if ((world.random.nextFloat() < entry.chance) && Condition.get(new Identifier(entry.condition)).test(world, baseX, baseY, baseZ, entry.config)) {
+						if ((world.random.nextFloat() < entry.chance) && ConditionRegistry.get(new Identifier(entry.condition)).test(world, baseX, baseY, baseZ, entry.config)) {
 							EntityData entityData = null;
 
 							int spawnCount = world.random.nextInt(1 + entry.maxCount - entry.minCount) + entry.minCount;
