@@ -5,9 +5,9 @@ import tk.valoeghese.jcontrol.annotation.Required;
 public class JControlConfig {
 	
 	@Required
-	public String entity = null;
+	public final String entity = null;
 	
 	@Required
-	public ConfigSpawnEntry[] spawns = null;
+	public final ConfigSpawnEntry[] spawns = null;
 	
 }

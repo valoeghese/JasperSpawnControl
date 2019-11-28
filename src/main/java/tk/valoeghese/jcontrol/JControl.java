@@ -108,17 +108,18 @@ public class JControl implements ModInitializer {
 		});
 
 		// light level
-		ConditionRegistry.register("jcontrol:light_level_greater_than", (world, x, y, z, config) -> {
-			return world.getLightLevel(new BlockPos(x, y, z)) > config.value;
+		ConditionRegistry.register("jcontrol:light_level_min", (world, x, y, z, config) -> {
+			return world.getLightLevel(new BlockPos(x, y, z)) >= config.value;
 		});
 
-		ConditionRegistry.register("jcontrol:light_level_less_than", (world, x, y, z, config) -> {
-			return world.getLightLevel(new BlockPos(x, y, z)) < config.value;
+		ConditionRegistry.register("jcontrol:light_level_max", (world, x, y, z, config) -> {
+			return world.getLightLevel(new BlockPos(x, y, z)) <= config.value;
 		});
 	}
 
 	public static class JControlOptions {
-		public String[] cannotBurn = new String[0];
+		public final String[] cannotBurn = new String[0];
+		public final boolean letVanillaPopulateChunk = false;
 	}
 
 }

@@ -172,6 +172,8 @@ public class MixinSpawnHelper {
 
 	@Inject(at = @At("HEAD"), method = "populateEntities", cancellable = true)
 	private static void mixinPopulateEntities(IWorld world, Biome biome, int x, int z, Random rand, CallbackInfo info) {
-		info.cancel();
+		if (!JControl.options.letVanillaPopulateChunk) {
+			info.cancel();
+		}
 	}
 }
