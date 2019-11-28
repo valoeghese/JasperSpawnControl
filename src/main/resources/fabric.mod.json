@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "jcontrol",
-  "version": "1.0.0",
+  "version": "1.0.0+alpha.2",
   "name": "JasperControl",
   "description": "Mod to control mob spawns",
   "authors": [
